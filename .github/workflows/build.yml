@@ -1,0 +1,43 @@
+name: Build RenPy Tools
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r RenPy-Tools/requirements.txt
+          pip install pyinstaller pillow
+
+      - name: Build executable
+        shell: pwsh
+        run: |
+          pyinstaller --noconfirm --clean --onefile --windowed --name "RenPy Tools" --icon "tool.ico" --add-data "tool.ico;." RenPy-Tools/RenPy_Tools.py
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: RenPy-Tools-Windows
+          path: dist/RenPy Tools.exe
+          if-no-files-found: error
